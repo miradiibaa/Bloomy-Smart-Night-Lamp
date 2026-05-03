@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloomy Smart Night Light</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff5f8;
+  --white:#ffffff;
+  --pink1:#e879a0;
+  --pink2:#db2777;
+  --pink3:#f472b6;
+  --pink4:#fbcfe8;
+  --pink5:#fce7f3;
+  --pink6:#fdf2f8;
+  --pink7:#f9a8d4;
+  --text:#5b1a33;
+  --text2:#9d4a6a;
+  --text3:#c084a0;
+  --shadow:0 8px 32px rgba(232,121,160,0.13);
+  --shadow2:0 2px 12px rgba(232,121,160,0.08);
+}
+body{font-family:'Quicksand',sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
+body::before{content:'';position:fixed;top:-120px;right:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,#fbcfe8 0%,transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-100px;left:-60px;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,#fce7f3 0%,transparent 70%);pointer-events:none;z-index:0}
+
+.app{max-width:420px;margin:0 auto;padding:0 18px 40px;position:relative;z-index:1}
+
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 0 8px}
+.conn-badge{display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:var(--white);box-shadow:var(--shadow2);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;border:none;transition:all .2s}
+.conn-badge:hover{box-shadow:var(--shadow)}
+.conn-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;transition:all .4s}
+.conn-dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
+
+/* HERO */
+.hero-card{
+  background:linear-gradient(160deg,#f472b6 0%,#ec4899 45%,#db2777 100%);
+  border-radius:28px;padding:28px 24px 24px;
+  margin:8px 0 16px;
+  box-shadow:0 12px 40px rgba(219,39,119,0.30);
+  position:relative;overflow:hidden;
+  min-height:220px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  transition:background 1s ease;
+}
+.hero-card.glowing{
+  background:linear-gradient(160deg,#fda4c8 0%,#f472b6 40%,#ec4899 100%);
+  box-shadow:0 12px 60px rgba(244,114,182,0.55);
+}
+.hero-card::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.08);pointer-events:none}
+.hero-card::after{content:'';position:absolute;bottom:-60px;left:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.05);pointer-events:none}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.hero-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.65);letter-spacing:0.12em;text-transform:uppercase}
+.hero-status-pill{padding:4px 12px;border-radius:20px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:white}
+.hero-center{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;position:relative;z-index:1;padding:8px 0}
+.mushroom-wrap{position:relative;width:90px;height:90px;display:flex;align-items:center;justify-content:center}
+.glow-ring{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,0.3);animation:glow-pulse 2.5s ease-in-out infinite}
+.glow-ring:nth-child(1){width:90px;height:90px}
+.glow-ring:nth-child(2){width:68px;height:68px;animation-delay:.5s}
+.glow-ring.off{animation:none;opacity:0}
+@keyframes glow-pulse{0%,100%{opacity:0.2;transform:scale(1)}50%{opacity:0.7;transform:scale(1.06)}}
+
+/* Lampu SVG — default putih, glowing pink */
+.lamp-body{fill:rgba(255,255,255,0.92);transition:fill .8s}
+.lamp-shade{fill:rgba(255,182,213,0.45);transition:fill .8s}
+.lamp-base{fill:rgba(255,255,255,0.38);transition:fill .8s}
+.lamp-stem{fill:rgba(255,255,255,0.5);transition:fill .8s}
+.lamp-dot1{fill:rgba(255,150,200,0.35);transition:fill .8s}
+.lamp-dot2{fill:rgba(255,150,200,0.28);transition:fill .8s}
+
+.hero-card.glowing .lamp-body{fill:#ffb6d9}
+.hero-card.glowing .lamp-shade{fill:rgba(255,100,180,0.5)}
+.hero-card.glowing .lamp-base{fill:rgba(255,150,210,0.5)}
+.hero-card.glowing .lamp-stem{fill:rgba(255,160,210,0.7)}
+.hero-card.glowing .lamp-dot1{fill:rgba(255,80,160,0.5)}
+.hero-card.glowing .lamp-dot2{fill:rgba(255,80,160,0.4)}
+
+.hero-word{font-family:'DM Serif Display',serif;font-size:28px;color:white;letter-spacing:-0.01em}
+.hero-bottom{position:relative;z-index:1}
+.bri-label{font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;font-weight:500}
+.bri-track{height:6px;background:rgba(255,255,255,0.22);border-radius:3px;overflow:hidden}
+.bri-fill{height:100%;width:0%;background:white;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.met{background:var(--white);border-radius:18px;padding:14px 12px;box-shadow:var(--shadow2);text-align:center}
+.met-icon{font-size:18px;margin-bottom:4px}
+.met-val{font-size:20px;font-weight:700;color:var(--text);line-height:1}
+.met-val.active{color:var(--pink1)}
+.met-lbl{font-size:10px;color:var(--text3);font-weight:600;margin-top:3px;letter-spacing:0.05em}
+.met-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.met-badge.gelap{background:var(--pink5);color:var(--pink2)}
+.met-badge.terang{background:#fef9c3;color:#854d0e}
+
+/* CONTROL */
+.ctrl-card{background:var(--white);border-radius:22px;padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
+.ctrl-card-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px}
+.bloom-btn{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,var(--pink3),var(--pink2));
+  border:none;border-radius:16px;
+  color:white;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Quicksand',sans-serif;
+  box-shadow:0 6px 20px rgba(219,39,119,0.28);
+  transition:all .2s;
+}
+.bloom-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(219,39,119,0.38)}
+.bloom-btn:active{transform:scale(0.97)}
+.bloom-btn:disabled{background:#f9a8d4;box-shadow:none;transform:none;cursor:not-allowed}
+.hint{font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.5}
+
+/* LDR */
+.ldr-card{background:var(--white);border-radius:22px;padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
+.ldr-row{display:flex;align-items:center;gap:14px}
+.ldr-arc-wrap{flex-shrink:0;position:relative;width:72px;height:72px}
+.ldr-arc-wrap svg{width:72px;height:72px}
+.ldr-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ldr-num{font-size:14px;font-weight:700;color:var(--text)}
+.ldr-sublbl{font-size:8px;color:var(--text3);font-weight:600;letter-spacing:0.05em}
+.ldr-right{flex:1}
+.ldr-right label{font-size:11px;color:var(--text3);font-weight:600;display:block;margin-bottom:8px}
+.slider{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--pink5);outline:none}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--pink1);cursor:pointer;box-shadow:0 2px 8px rgba(232,121,160,0.35)}
+.threshold-note{font-size:10px;color:var(--text3);margin-top:6px}
+.threshold-note span{color:var(--pink2);font-weight:700}
+
+/* TIMER */
+.timer-card{background:var(--white);border-radius:22px;padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
+.timer-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.timer-countdown{font-size:28px;font-weight:700;color:var(--pink1);font-family:'DM Serif Display',serif}
+.timer-unit{font-size:11px;color:var(--text3);font-weight:600}
+.timer-track{height:8px;background:var(--pink5);border-radius:4px;overflow:hidden}
+.timer-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--pink4),var(--pink1));border-radius:4px;transition:width .5s ease}
+
+/* LOG */
+.log-card{background:var(--white);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.log-list{max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-top:2px}
+.log-list::-webkit-scrollbar{width:3px}
+.log-list::-webkit-scrollbar-thumb{background:var(--pink5);border-radius:2px}
+.log-row{display:flex;gap:8px;font-size:11px;padding:4px 0;border-bottom:1px solid var(--pink6)}
+.log-ts{color:var(--pink3);font-weight:700;flex-shrink:0}
+.log-ev{color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="status-bar">
+    <span style="font-weight:700;font-size:13px;color:var(--text)"> BloomyLamp 🌸 </span>
+    <button class="conn-badge" onclick="toggleConnect()" id="connBtn">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connLabel">Connect to Firebase</span>
+    </button>
+  </div>
+
+  <div class="hero-card" id="heroCard">
+    <div class="hero-top">
+      <div class="hero-label">Light Status</div>
+      <div class="hero-status-pill" id="heroPill">Standby</div>
+    </div>
+    <div class="hero-center">
+      <div class="mushroom-wrap">
+        <div class="glow-ring off" id="ring1"></div>
+        <div class="glow-ring off" id="ring2"></div>
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <ellipse cx="28" cy="50" rx="14" ry="4" class="lamp-base"/>
+          <path d="M10 32 Q10 16 28 16 Q46 16 46 32 Q46 40 28 42 Q10 40 10 32Z" class="lamp-body"/>
+          <path d="M14 30 Q14 21 28 21 Q42 21 42 30" class="lamp-shade"/>
+          <ellipse cx="28" cy="42" rx="14" ry="3.5" class="lamp-base"/>
+          <rect x="26" y="42" width="4" height="8" rx="2" class="lamp-stem"/>
+          <circle cx="22" cy="27" r="2.5" class="lamp-dot1"/>
+          <circle cx="34" cy="24" r="1.5" class="lamp-dot2"/>
+        </svg>
+      </div>
+      <div class="hero-word" id="heroWord">Breathe</div>
+    </div>
+    <div class="hero-bottom">
+      <div class="bri-label">Brightness — <span id="briPct">0%</span></div>
+      <div class="bri-track"><div class="bri-fill" id="briFill"></div></div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="met">
+      <div class="met-icon">💡</div>
+      <div class="met-val active" id="metBri">0</div>
+      <div class="met-lbl">Brightness</div>
+    </div>
+    <div class="met">
+      <div class="met-icon">👁️</div>
+      <div class="met-val" id="metLdr">—</div>
+      <div class="met-lbl">LDR Value</div>
+    </div>
+    <div class="met">
+      <div style="margin-bottom:4px"></div>
+      <div><span class="met-badge gelap" id="metKondisi">—</span></div>
+      <div class="met-lbl" style="margin-top:6px">Condition</div>
+    </div>
+  </div>
+
+  <div class="ctrl-card">
+    <div class="ctrl-card-title">Remote Control</div>
+    <button class="bloom-btn" id="bloomBtn" onclick="nyalakanLampu()" disabled>Tap to Bloom 🌸</button>
+    <div class="hint" id="bloomHint">Connect to Firebase to control the light</div>
+  </div>
+
+  <div class="ldr-card">
+    <div class="ctrl-card-title">Light Sensor Simulation</div>
+    <div class="ldr-row">
+      <div class="ldr-arc-wrap">
+        <svg viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r="28" fill="none" stroke="#fce7f3" stroke-width="7"/>
+          <circle cx="36" cy="36" r="28" fill="none" stroke="#f472b6" stroke-width="7"
+            stroke-dasharray="176" stroke-dashoffset="176"
+            stroke-linecap="round" transform="rotate(-90 36 36)" id="ldrArc"/>
+        </svg>
+        <div class="ldr-center">
+          <div class="ldr-num" id="ldrNumArc">0</div>
+          <div class="ldr-sublbl">ANALOG</div>
+        </div>
+      </div>
+      <div class="ldr-right">
+        <label>Slide to simulate light</label>
+        <input type="range" class="slider" id="ldrSlider" min="0" max="4095" value="800" oninput="updateLDR(this.value)">
+        <div class="threshold-note">Dark if value &gt; <span>1660</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="timer-card">
+    <div class="ctrl-card-title">Fade Timer</div>
+    <div class="timer-top">
+      <div>
+        <div class="timer-countdown" id="timerNum">4.0</div>
+        <div class="timer-unit">seconds remaining</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--text3)">Duration</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text)">4s</div>
+      </div>
+    </div>
+    <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+  </div>
+
+  <div class="log-card">
+    <div class="ctrl-card-title">Activity Log</div>
+    <div class="log-list" id="logList">
+      <div class="log-row"><span class="log-ts">--:--:--</span><span class="log-ev">Dashboard ready. Connect to Firebase...</span></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDl5BilRozLjzlcF-09s8DtjzT9DeCebck",
+  authDomain: "lampu-tidur-otomatis.firebaseapp.com",
+  databaseURL: "https://lampu-tidur-otomatis-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lampu-tidur-otomatis",
+  storageBucket: "lampu-tidur-otomatis.firebasestorage.app",
+  messagingSenderId: "919916546515",
+  appId: "1:919916546515:web:677fceffcb5726ad728726"
+};
+
+let app, db, connected = false;
+let fadeInterval = null, timerStart = null;
+const TIMER_MS = 4000;
+
+function ts(){
+  const n = new Date();
+  return [n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+}
+
+function addLog(msg){
+  const list = document.getElementById('logList');
+  const row = document.createElement('div');
+  row.className = 'log-row';
+  row.innerHTML = `<span class="log-ts">${ts()}</span><span class="log-ev">${msg}</span>`;
+  list.prepend(row);
+  while(list.children.length > 30) list.lastChild.remove();
+}
+
+function updateHeroUI(isOn, bri){
+  const pct = Math.round(bri/255*100);
+  document.getElementById('briFill').style.width = pct + '%';
+  document.getElementById('briPct').textContent = pct + '%';
+  document.getElementById('metBri').textContent = bri;
+  document.getElementById('heroPill').textContent = isOn ? 'Glowing 🌸' : 'Standby';
+  document.getElementById('heroWord').textContent = isOn ? 'Glowing' : 'Breathe';
+  const heroCard = document.getElementById('heroCard');
+  const r1 = document.getElementById('ring1');
+  const r2 = document.getElementById('ring2');
+  if(isOn){
+    heroCard.classList.add('glowing');
+    r1.classList.remove('off');
+    r2.classList.remove('off');
+  } else {
+    heroCard.classList.remove('glowing');
+    r1.classList.add('off');
+    r2.classList.add('off');
+  }
+}
+
+function updateLDRUI(val){
+  val = parseInt(val);
+  const pct = Math.min(val/4095, 1);
+  const circ = 176;
+  document.getElementById('ldrArc').style.strokeDashoffset = circ - (circ * pct);
+  document.getElementById('ldrNumArc').textContent = val;
+  document.getElementById('metLdr').textContent = val;
+  const dark = val > 1660;
+  const el = document.getElementById('metKondisi');
+  el.textContent = dark ? 'Dark' : 'Light';
+  el.className = 'met-badge ' + (dark ? 'gelap' : 'terang');
+  return dark;
+}
+
+function startFade(){
+  if(fadeInterval) clearInterval(fadeInterval);
+  timerStart = Date.now();
+  addLog('Light on — fade started 🌸');
+  fadeInterval = setInterval(async () => {
+    const elapsed = Date.now() - timerStart;
+    const remaining = Math.max(0, TIMER_MS - elapsed);
+    const bri = Math.max(0, Math.min(255, Math.round(255 - (elapsed/TIMER_MS)*255)));
+    const pctTimer = Math.min(elapsed/TIMER_MS*100, 100);
+    document.getElementById('timerFill').style.width = pctTimer + '%';
+    document.getElementById('timerNum').textContent = (remaining/1000).toFixed(1);
+    updateHeroUI(true, bri);
+    if(db) await update(ref(db, '/lampu'), { brightness: bri, isOn: true });
+    if(elapsed >= TIMER_MS){
+      clearInterval(fadeInterval);
+      fadeInterval = null;
+      timerStart = null;
+      document.getElementById('timerFill').style.width = '0%';
+      document.getElementById('timerNum').textContent = '4.0';
+      updateHeroUI(false, 0);
+      if(db) await update(ref(db, '/lampu'), { brightness:0, isOn:false });
+      addLog('Light off — fade completed');
+      document.getElementById('bloomBtn').disabled = false;
+      document.getElementById('bloomHint').textContent = 'Tap to turn on the light';
+    }
+  }, 80);
+}
+
+window.nyalakanLampu = async function(){
+  const ldrVal = parseInt(document.getElementById('ldrSlider').value);
+  if(ldrVal <= 1660){
+    addLog('Rejected — not dark yet (LDR ≤ 1660)');
+    document.getElementById('bloomHint').textContent = '⚠️ Slide LDR above 1660 first!';
+    return;
+  }
+  if(fadeInterval){ addLog('Light is already on...'); return; }
+  document.getElementById('bloomBtn').disabled = true;
+  document.getElementById('bloomHint').textContent = 'Fade in progress...';
+  if(db) await update(ref(db, '/lampu'), { remoteOn: true, isOn: true, brightness: 255 });
+  startFade();
+}
+
+window.updateLDR = async function(val){
+  const dark = updateLDRUI(val);
+  if(db) await update(ref(db, '/lampu'), { ldrValue: parseInt(val), kondisiGelap: dark });
+}
+
+window.toggleConnect = async function(){
+  if(connected){
+    connected = false;
+    document.getElementById('connDot').classList.remove('on');
+    document.getElementById('connLabel').textContent = 'Connect to Firebase';
+    document.getElementById('bloomBtn').disabled = true;
+    addLog('Disconnected from Firebase');
+    return;
+  }
+  try {
+    if(!app){
+      app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+    }
+    await update(ref(db, '/lampu'), {
+      isOn: false, brightness: 0,
+      ldrValue: parseInt(document.getElementById('ldrSlider').value),
+      kondisiGelap: false, remoteOn: false
+    });
+    onValue(ref(db, '/lampu'), () => {
+      if(!connected){
+        connected = true;
+        document.getElementById('connDot').classList.add('on');
+        document.getElementById('connLabel').textContent = 'Connected ✓';
+        document.getElementById('bloomBtn').disabled = false;
+        document.getElementById('bloomHint').textContent = 'Tap to turn on the light';
+        addLog('Connected to Firebase ✓');
+      }
+    });
+    updateLDRUI(parseInt(document.getElementById('ldrSlider').value));
+  } catch(e){
+    addLog('Connection failed: ' + e.message);
+  }
+}
+
+updateLDRUI(800);
+addLog('Night Light Dashboard ready 🌸');
+</script>
+</body>
+</html>
